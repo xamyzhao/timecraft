@@ -7,7 +7,7 @@ In this research project, we explore a new problem of synthesizing time lapse vi
 
 To use the [tipiX](https://github.com/adalca/tipiX) visualization tool [1] below, click on the image to pause/start the autoplay feature, and move your mouse from left to right to move through each time lapse. 
 <div align="center">
-<iframe src="http://www.mit.edu/~adalca/tipiXnightly/?path=http://people.csail.mit.edu/xamyzhao/timelapse_outputs/sample_results/preds_frame$.png&xBins=40&nDims=1&iframe=430x310&play=150" height="310" width="430"></iframe>
+<iframe src="https://www.mit.edu/~adalca/tipiXnightly/?path=http://people.csail.mit.edu/xamyzhao/timelapse_outputs/sample_results/preds_frame$.png&xBins=40&nDims=1&iframe=430x310&play=150" height="310" width="430"></iframe>
 </div>
 
 [1] Adrian V Dalca, Ramesh Sridharan, Natalia Rost, and Polina
