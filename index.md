@@ -10,10 +10,10 @@ To use the [tipiX](https://github.com/adalca/tipiX) visualization tool [1] below
 <iframe src="https://www.mit.edu/~adalca/tipiXnightly/?path=http://people.csail.mit.edu/xamyzhao/timelapse_outputs/sample_results/preds_frame$.png&xBins=40&nDims=1&iframe=430x310&play=150" height="310" width="430"></iframe>
 </div>
 
-[1] Adrian V Dalca, Ramesh Sridharan, Natalia Rost, and Polina
+<sub>[1] Adrian V Dalca, Ramesh Sridharan, Natalia Rost, and Polina
 Golland. tipiX: Rapid visualization of large image collections.
 MICCAI-IMIC Interactive Medical Image Computing
-Workshop.
+Workshop.</sub>
 
 ## Paper
 **Painting Many Pasts: Synthesizing Time Lapse Videos of Paintings**  
