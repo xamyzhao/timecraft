@@ -13,7 +13,7 @@ To run this code, you will need:
 * Python 3.6+ (Python 2.7 may work but has not been tested)
 * CUDA 10.0+
 * Tensorflow 1.13.1 and Keras 2.2.4
-* one GPU with 12 GB of memory (we used a single NVIDIA Titan X)
+* 1-2 GPUs, each with 12 GB of memory
 
 ## Creating time lapse samples
 Use the provided script to run our trained model and synthesize a time lapse for a given input image.
