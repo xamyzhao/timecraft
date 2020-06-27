@@ -8,7 +8,7 @@ from keras.models import load_model
 import keras.backend as K
 import tensorflow as tf
 
-from src.utils import vis_utils
+from src.utils import network_utils, vis_utils
 from src.networks import network_wrappers
 
 SCALE_TO_SHAPE = (126, 168)
@@ -59,7 +59,7 @@ if __name__ == '__main__':
         '../trained_models/ours_watercolor_epoch300.h5',
         custom_objects={
             'Blur_Downsample': functools.partial(
-                utils.Blur_Downsample,
+                network_utils.Blur_Downsample,
                 n_chans=3),
         }
     )
