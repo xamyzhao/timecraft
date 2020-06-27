@@ -56,7 +56,7 @@ if __name__ == '__main__':
 
 
     frame_predictor_model = load_model(
-        '../trained_models/ours_watercolor_epoch300.h5',
+        './trained_models/ours_digital_and_watercolor_epoch400.h5',
         custom_objects={
             'Blur_Downsample': functools.partial(
                 network_utils.Blur_Downsample,
