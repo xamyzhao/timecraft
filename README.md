@@ -18,7 +18,7 @@ To run this code, you will need:
 ## Creating time lapse samples
 Use the provided script to run our trained model and synthesize a time lapse for a given input image.
 ```
-python scripts/make_timelapse.py cezanne_watermelon_and_pomegranates.jpg
+python scripts/make_timelapse.py scripts/cezanne_watermelon_and_pomegranates.jpg
 ```
 
 ## Training your own models
