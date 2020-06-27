@@ -8,7 +8,7 @@ from keras.models import load_model
 import keras.backend as K
 import tensorflow as tf
 
-from src.utils import utils
+from src.utils import vis_utils
 from src.networks import network_wrappers
 
 SCALE_TO_SHAPE = (126, 168)
@@ -52,7 +52,7 @@ if __name__ == '__main__':
          crop_start_row : crop_start_row + MODEL_INPUT_SHAPE[0],
          crop_start_col : crop_start_col + MODEL_INPUT_SHAPE[1]
          ]
-    im = utils.normalize(im / 255.)  # normalize to range [-1, 1]
+    im = vis_utils.normalize(im / 255.)  # normalize to range [-1, 1]
 
 
     frame_predictor_model = load_model(
@@ -81,7 +81,7 @@ if __name__ == '__main__':
             [im[np.newaxis], np.ones((1,) + im.shape), np.zeros((1, 5))])
         print(f'Predicted video shape: {pred_vid.shape}')
 
-        pred_vid_im = utils.visualize_video(
+        pred_vid_im = vis_utils.visualize_video(
             pred_vid[0], normalized=True)
 
         cv2.imshow(f'Video sample {i+1}', pred_vid_im)
