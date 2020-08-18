@@ -109,3 +109,105 @@ def visualize_video(frames, border_size=1, max_n_ims_per_row=10, normalized=Fals
 
         output_rows.append(row_im)
     return np.concatenate(output_rows, axis=0)
+
+
+def label_ims(ims_batch, labels=None,
+              display_h=128, concat_axis=0, combine_from_axis=0):
+    '''
+    Displays a batch of matrices as an image.
+
+    :param ims_batch: n_batches x h x w x c array of images.
+    :param labels: optional labels. Can be an n_batches length list of tuples, floats or strings
+    :param normalize: boolean to normalize any [min, max] to [0, 255]
+    :param display_h: integer number of pixels for the height of each image to display
+    :return: an image (h' x w' x 3) with elements of the batch organized into rows
+    '''
+
+    if len(ims_batch.shape) == 3 and ims_batch.shape[-1] == 3:
+        # already an image
+        return ims_batch
+
+    batch_size = ims_batch.shape[combine_from_axis]
+
+    if type(labels) == list and len(labels) == 1:
+        # only label the first image
+        labels = labels + [''] * (batch_size - 1)
+    elif labels is not None and not type(labels) == list and not type(labels) == np.ndarray:
+        # replicate labels for each row in the batch
+        labels = [labels] * batch_size
+
+
+
+    # make sure we have a channels dimension
+    if len(ims_batch.shape) < 4:
+        ims_batch = np.expand_dims(ims_batch, 3)
+
+    ims_batch = inverse_normalize(ims_batch)
+
+    if np.max(ims_batch) <= 1.0:
+        ims_batch = ims_batch * 255.0
+
+    ims_batch = np.split(ims_batch, ims_batch.shape[combine_from_axis], axis=combine_from_axis)
+    ims_batch = [np.take(im, 0, axis=combine_from_axis) for im in ims_batch]  # remove the extra axis
+    h, w = ims_batch[0].shape[:2]
+    scale_factor = display_h / float(h)
+
+    out_im = []
+    for i in range(batch_size):
+        # convert grayscale to rgb if needed
+        if len(ims_batch[i].shape) == 2:
+            curr_im = np.tile(np.expand_dims(ims_batch[i], axis=-1), (1, 1, 3))
+        elif ims_batch[i].shape[-1] == 1:
+            curr_im = np.tile(ims_batch[i], (1, 1, 3))
+        else:
+            curr_im = ims_batch[i]
+
+        # scale to specified display size
+        if scale_factor > 2:  # if we are upsampling by a lot, nearest neighbor can look really noisy
+            interp = cv2.INTER_NEAREST
+        else:
+            interp = cv2.INTER_LINEAR
+
+        if not scale_factor == 1:
+            curr_im = cv2.resize(curr_im, None, fx=scale_factor, fy=scale_factor, interpolation=interp)
+
+        out_im.append(curr_im)
+
+    out_im = np.concatenate(out_im, axis=concat_axis).astype(np.uint8)
+
+    # draw text labels on images if specified
+    font_size = 15
+    max_text_width = int(17 * display_h / 128.)  # empirically determined
+
+    if labels is not None and len(labels) > 0:
+        im_pil = Image.fromarray(out_im)
+        draw = ImageDraw.Draw(im_pil)
+
+        for i in range(batch_size):
+            if len(labels) > i:  # if we have a label for this image
+                if type(labels[i]) == tuple or type(labels[i]) == list:
+                    # format tuple or list nicely
+                    formatted_text = ', '.join([
+                        labels[i][j].decode('UTF-8') if type(labels[i][j]) == np.unicode_ \
+                            else labels[i][j] if type(labels[i][j]) == str \
+                            else str(round(labels[i][j], 2)) if isinstance(labels[i][j], float) \
+                            else str(labels[i][j]) for j in range(len(labels[i]))])
+                elif type(labels[i]) == float or type(labels[i]) == np.float32:
+                    formatted_text = str(round(labels[i], 2))  # round floats to 2 digits
+                elif isinstance(labels[i], np.ndarray):
+                    # assume that this is a 1D array
+                    curr_labels = np.squeeze(labels[i]).astype(np.float32)
+                    formatted_text = np.array2string(curr_labels, precision=2, separator=',')
+                else:
+                    formatted_text = '{}'.format(labels[i])
+
+                font = ImageFont.truetype('Ubuntu-M.ttf', font_size)
+                # wrap the text so it fits
+                formatted_text = textwrap.wrap(formatted_text, width=max_text_width)
+
+                for li, line in enumerate(formatted_text):
+                    draw.text((5, i * display_h + 5 + 14 * li), line, font=font, fill=(50, 50, 255))
+
+        out_im = np.asarray(im_pil)
+
+    return out_im
