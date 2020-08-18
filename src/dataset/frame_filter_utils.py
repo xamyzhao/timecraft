@@ -1,4 +1,7 @@
+import os
+
 import numpy as np
+import scipy.io as sio
 
 from src.utils import utils
 
@@ -176,14 +179,6 @@ def filter_by_fps(framenums, fps, vid_max_framenum=None, _print=print):
     return keep_idxs
 
 
-
-import os
-
-#if not os.path.isdir(framenums_cache_root):
-#    os.mkdir(framenums_cache_root)
-#if not os.path.isdir(attn_areas_cache_root):
-#    os.mkdir(attn_areas_cache_root)
-
 def enumerate_nonadj_seqs(framenums, attns=None, frame_delta_range=None,
                           min_attn_area=None, max_attn_area=None, seq_len=1, max_seqs_per_start=5,
                           has_valid_deltas=None, greedy=False, vid_name=None):
@@ -212,43 +207,23 @@ def enumerate_nonadj_seqs(framenums, attns=None, frame_delta_range=None,
                                                         max_n_seqs=max_seqs_per_start)
     return all_additional_seqs, has_valid_deltas
 
-import time
-import scipy.io as sio
+
 def _find_valid_nonadj_frames(attns, frame_delta_range, framenums, has_valid_deltas=None,
                               max_attn_area=None, min_attn_area=None, min_attn_areas_to_remove=None, vid_name=None):
     framenums = framenums.astype(np.uint16)
     T = len(framenums)
     assert len(list(set(framenums))) == len(framenums)  # framenums should be unique
     if has_valid_deltas is None and frame_delta_range is not None:
-        if vid_name is not None:
-            st = time.time()
-            # look for a cache file
-            cache_file = os.path.join(framenums_cache_root, '{}.mat'.format(vid_name))
-            if os.path.isfile(cache_file):
-                data = sio.loadmat(cache_file)
-                framenum_deltas = data['framenum_deltas']
-            
-                print('Loading framenum deltas matrix took {}'.format(time.time() - st))
-        else:
-            cache_file = None
-
-        if cache_file is None or not os.path.isfile(cache_file):
-            st = time.time()
-            # make a T x T matrix of the diff between each id and the id on the diagonal
-            framenum_deltas = np.abs(
-                np.tile(np.reshape(framenums, (1, T)), (T, 1)) \
-                - np.tile(np.reshape(framenums, (T, 1)), (1, T))
-            )
-            print('Creating framenum deltas matrix took {}'.format(time.time() - st))
-            #if cache_file is not None and not os.path.isfile(cache_file):
-            #    sio.savemat(cache_file, {'framenum_deltas': framenum_deltas})
+        # make a T x T matrix of the diff between each id and the id on the diagonal
+        framenum_deltas = np.abs(
+            np.tile(np.reshape(framenums, (1, T)), (T, 1)) \
+            - np.tile(np.reshape(framenums, (T, 1)), (1, T))
+        )
 
         if frame_delta_range is not None:
-            st = time.time()
             # for each frame t, keep track of which following frames are valid (e.g. t+2, t+3)
             has_valid_deltas = (framenum_deltas >= frame_delta_range[0]) * (
                     framenum_deltas <= frame_delta_range[1]).astype(bool)
-            print('Computing valid framenum deltas took {}'.format(time.time() - st))
             del framenum_deltas
     elif has_valid_deltas is not None:
         assert has_valid_deltas.shape[0] == T
@@ -263,28 +238,21 @@ def _find_valid_nonadj_frames(attns, frame_delta_range, framenums, has_valid_del
         # since even if they are non-adjacent, they won't add any information to our training set
 
         # first, create an attention matrix
-        st = time.time()
         attn_deltas = _compute_attn_area_matrix(attns)
-        print('Creating attn matrix took {}'.format(time.time() - st))
-
-        st = time.time()
         if min_attn_area is not None:
             has_valid_deltas *= (attn_deltas >= min_attn_area).astype(bool)
 
         if max_attn_area is not None:
             has_valid_deltas *= (attn_deltas <= max_attn_area).astype(bool)
-        print('Computing valid attns took {}'.format(time.time() - st))
         # also zero out any columns where the frame has 0 attn wrt its previous frame --
         # that means it is identical to the previous frame so there is no point in including it
-        st = time.time()
         for t in range(1, T):
             # check for min_attn_area here instead? so we don't get trivial differences
             if attn_deltas[t - 1, t] < (min_attn_areas_to_remove if min_attn_areas_to_remove is not None else min_attn_area):
                 # zero out the entire row and col -- basically never use this index at the start or end of a sequence
                 has_valid_deltas[:, t] = 0
                 has_valid_deltas[t, :] = 0
-        print('Zeroing similar attns in matrix took {}'.format(time.time() - st))
-    st = time.time()
+
     # convert TxT binary matrix to a T-length list, where each element is a list of valid next frames
     valid_next_frame_idxs = [None] * T
     for t in range(T):
@@ -293,7 +261,7 @@ def _find_valid_nonadj_frames(attns, frame_delta_range, framenums, has_valid_del
             # only take "next" frames that are actually after the current frame
             valid_next_frame_idxs[t] = [next_idx for next_idx in np.where(r)[0].tolist() if next_idx > t]
             assert np.all(np.asarray(valid_next_frame_idxs[t]) > t)
-    print('Computing valid next frames took {}'.format(time.time() - st))
+
     return valid_next_frame_idxs, has_valid_deltas
 
 

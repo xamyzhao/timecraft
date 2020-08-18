@@ -1,6 +1,6 @@
 digital_data_configs = {
 	'dig-example': {
-        'vid_caches_dir': '.\\datasets\\digital_paintings\\pkls_dir',
+        'vid_caches_dir': '.\\datasets\\digital_paintings\\pkls_dir',  # fill this in with your dataset dir
 		'pad_to_shape': (50, 50, 3),
 		'im_shape': (50, 50, 3),
 		'dataset': 'digital',

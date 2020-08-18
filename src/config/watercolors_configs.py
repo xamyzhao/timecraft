@@ -3,7 +3,7 @@ watercolors_data_configs = {
 		'pad_to_shape': (50, 50, 3),
 		'im_shape': (50, 50, 3),
 		'dataset': 'watercolors_batch123_pruned',
-        'vid_caches_dir': 'C:\\Datasets\\watercolors\\vid_caches_shifted',
+        'vid_caches_dir': '.\\datasets\\watercolors\\vid_caches_shifted',  # fill this in with your dataset dir
 		'crop_type': 'olap',
 		'do_stretch': False,
 		'scale_factor': 0.7,
